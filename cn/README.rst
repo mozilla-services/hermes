@@ -104,7 +104,7 @@ The server will respond with either:
 
 * A success message
 * An error if the Key is invalid
-* A new DeviceID/Key in the event this is a different cluster or its a first-time auth
+* A new DeviceID/Key if its a first-time auth
 * A redirect indicating the client should change clusters its connecting to
 * A retry if the DeviceID/Key is valid, but the server is full so the client should
   try a different IP for this cluster name
@@ -212,7 +212,9 @@ the new DeviceID, the client may send messages and will receive them as normal.
 If a new Device ID was not assigned to this client, DEVICECHANGE messages will
 be discarded silently by the CN.
 
-When the service acknowledges the message, it will return a response with the
+**Server -> Client**
+
+When the service acknowledges the message, it will send a message with the
 format: ``DEVICECHANGED:SERVICE-NAME:NEW-ID``
 
 Example:

@@ -94,9 +94,9 @@ Header: 2
 
 Data:
 
-    DeviceID (CSUUID)
-
     Message-ID (UUID)
+
+    DeviceID (CSUUID)
 
     Service Name (String)
 
@@ -120,6 +120,7 @@ Response values:
 
 If the response is ``2``, then the CN should temporarily stop attempting to
 deliver messages for that service.
+
 
 Service API v1
 ==============
@@ -175,9 +176,9 @@ Header: 2
 
 Data:
 
-    DeviceID (CSUUID)
-
     MessageID (UUID)
+
+    DeviceID (CSUUID)
 
     Data (String)
 
@@ -187,10 +188,43 @@ Header: 2
 
 Data:
 
+    MessageID (UUID)
+
     Success (Integer)
+
+Success values:
+
+    0 - Accepted
+
+
+DeviceID Change (3)
+-------------------
+
+When a DeviceID change occurs, the client will send a DEVICECHANGE message to
+the CN that the IR will relay to the server.
+
+**IR -> Service**
+
+Header: 3
+
+Data:
 
     MessageID (UUID)
 
-Success values:
+    DeviceID (CSUUID)
+
+    Old DeviceID (CSUUID)
+
+**Service -> IR**
+
+Header: 3
+
+Data:
+
+    MessageID (UUID)
+
+    Response (Integer)
+
+Response values:
 
     0 - Accepted
