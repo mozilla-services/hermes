@@ -52,6 +52,8 @@ delivery/reception of messages to Mozilla Services.
 When a client disconnects intentionally or not, the CN must braodcast to all
 Outbound Routers that the DeviceID is no longer connected.
 
+The client must send/receive data or send a ping at least once ever PINGINTERVAL.
+
 Helo
 ----
 
@@ -64,7 +66,11 @@ Example helo:
 
 .. code-block:: txt
 
-	HELO:v1
+	HELO:v1:PINGINTERVAL
+
+The PINGINTERVAL value is the longest without data sent/received the client can
+handle before the connection should be considered invalid. This value must be
+an integer.
 
 **Server -> Client**
 
@@ -162,6 +168,26 @@ The client must always store the DeviceID:Key and the cluster to
 connect to, along with applications that have used it.
 
 After authentication has completed, normal message delivery mode commences.
+
+Ping
+----
+
+Sent on occasion to ensure the connection is still alive. The client gets to
+choose the ping interval based on its own heuristics.
+
+**Client -> Server**
+
+Example:
+
+.. code-block:: txt
+
+    PING
+
+**Server -> Client**
+
+.. code-block:: txt
+
+    PONG
 
 DeviceID Change
 ---------------
