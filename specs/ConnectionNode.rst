@@ -52,6 +52,9 @@ delivery/reception of messages to Mozilla Services.
 When a client disconnects intentionally or not, the CN must braodcast to all
 Outbound Routers that the DeviceID is no longer connected.
 
+The DeviceID shown here is a Cluster integer identifier, combined with a hex
+UUID using '-'.
+
 The client must send/receive data or send a ping at least once ever PINGINTERVAL.
 
 Helo
@@ -102,7 +105,7 @@ Example later connects:
 
 .. code-block:: txt
 
-	AUTH:6ba7b810-9dad-11d1-80b4-00c04fd430c8:90761ab1794e4d68b83743c68c85acc8
+	AUTH:13-6ba7b810-9dad-11d1-80b4-00c04fd430c8:90761ab1794e4d68b83743c68c85acc8
 
 **Server -> Client**
 
@@ -131,7 +134,7 @@ Example new device ID:
 
 .. code-block:: txt
 
-	AUTH:NEW:6ba7b810-9dad-11d1-80b4-00c04fd430c8:90761ab1794e4d68b83743c68c85acc8
+	AUTH:NEW:13-6ba7b810-9dad-11d1-80b4-00c04fd430c8:90761ab1794e4d68b83743c68c85acc8
 
 Example redirect:
 
@@ -205,7 +208,7 @@ Example:
 
 .. code-block:: txt
 
-	DEVICECHANGE:WEBPUSH:0ce37cb2-d4fc-42d1-b0aa-5e6360c001c4:6ba7b810-9dad-11d1-80b4-00c04fd430c8:e343d79b-6380-451f-b549-16c8a7ee91bc
+	DEVICECHANGE:WEBPUSH:13-0ce37cb2-d4fc-42d1-b0aa-5e6360c001c4:6ba7b810-9dad-11d1-80b4-00c04fd430c8:14-e343d79b-6380-451f-b549-16c8a7ee91bc
 
 The CN **must verify the old DeviceID/Key and new DeviceID for accuracy before
 sending it to the Inbound Relay**.
