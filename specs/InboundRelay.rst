@@ -115,7 +115,51 @@ Data:
 Response values:
 
     0 - Delivered to the Service
+
     1 - Spooled
+
+    2 - Service spool is full/unavailable
+
+If the response is ``2``, then the CN should temporarily stop attempting to
+deliver messages for that service.
+
+
+DeviceID Change (3)
+-------------------
+
+When a DeviceID change occurs, the CN will send it to the IR and eventually
+get a confirmation from the Service via the OR.
+
+**CN -> IR**
+
+Header: 3
+
+Data:
+
+    MessageID (UUID)
+
+    DeviceID (CSUUID)
+
+    Old DeviceID (CSUUID)
+
+    Service Name (String)
+
+**IR -> CN**
+
+Header: 3
+
+Data:
+
+    MessageID (UUID)
+
+    Response (Integer)
+
+Response values:
+
+    0 - Delivered to the Service
+
+    1 - Spooled
+
     2 - Service spool is full/unavailable
 
 If the response is ``2``, then the CN should temporarily stop attempting to
