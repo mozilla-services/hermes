@@ -33,7 +33,8 @@ the length of characters being sent.
 
 UUID's are encoded as binary data, 16 bytes in length. CSUUID is a
 cluster UUID which should be treated as a cluster identifier (first 2
-bytes, int) followed by the 16 byte UUID.
+bytes, int) followed by the 16 byte UUID. A bool is a single byte of
+0 for False, 1 for True.
 
 All commands begin with a header packet containing an unsigned short (2
 bytes) that corresponds to the type of the command being sent/received.
@@ -86,11 +87,11 @@ Data:
     Version (Integer)
 
 
-Device Listing (2)
-------------------
+URI Listing (2)
+---------------
 
-When a CN finishes saying HELO, it send a full list of all DeviceID's
-connected.
+When a CN finishes saying HELO, it send a full list of all open URI's
+available for PUSH.
 
 **CN -> OR**
 
@@ -98,92 +99,58 @@ Header: 2
 
 Data:
 
-    Device count (Integer - N)
+    URI count (Integer - N)
 
-    List of devices (CSUUID * N)
+    List of devices (String * N)
 
 
-Device Connection Change (3)
+URI Change (3)
+--------------
+
+When a client connected to a CN drops a URI that was left open, or a new
+client connects and opens a URI with no TTL (to be left open), then a URI
+Change message will be sent.
+
+**CN -> OR**
+
+Header: 3
+
+Data:
+
+    URI (String)
+
+    Change (Int)
+
+Change values:
+
+    0 - URI is no longer present
+
+    1 - New URI that is now available
+
+
+Deliver Response Message (4)
 ----------------------------
-
-Anytime clients connect and complete authentication, or disconnect, a Device
-Connection Change message will be sent to the OR.
-
-**CN -> OR**
-
-Header: 3
-
-Data:
-
-    DeviceID (CSUUID)
-
-    Change (Integer)
-
-Integer values:
-
-    0 - Disconnected
-    1 - Connected
-
-
-DeviceID Change (4)
--------------------
-
-When a DeviceID change occurs, the CN will send it to the IR and eventually
-get a confirmation from the Service via the OR.
-
-**OR -> CN**
-
-Header: 3
-
-Data:
-
-    MessageID (UUID)
-
-    DeviceID (CSUUID)
-
-    Old DeviceID (CSUUID)
-
-**CN -> OR**
-
-Header: 3
-
-Data:
-
-    MessageID (UUID)
-
-    Response (Integer)
-
-Response values:
-
-    0 - Delivered to the device
-
-    1 - Error delivering to the device
-
-In the event that there was an error, the OR may safely discard the message as
-the client will try again before resuming its message flow for the Service.
-
-
-Deliver Message (5)
--------------------
 
 Messages may be processed for delivery in parallel, it is up to the OR
 to associate replies with the outbound message that was sent.
 
+This API is for sending messages in response to a request that was made.
+
 **OR -> CN**
 
-Header: 2
+Header: 4
 
 Data:
 
     MessageID (UUID)
 
-    DeviceID (CSUUID)
+    Headers (Hash String/String)
 
-    Data (String)
+    Body (String)
 
 **CN -> OR**
 
-Header: 2
+Header: 4
 
 Data:
 
@@ -199,7 +166,52 @@ Response values:
 
     2 - Device is not connected to this node
 
-    3 - Inbound Relay is not available
+
+Deliver URI Message (5)
+-----------------------
+
+Messages may be processed for delivery in parallel, it is up to the OR
+to associate replies with the outbound message that was sent.
+
+This API is for sending messages to an open URI, setting Push to 1 will
+result in the open URI being used to deliver Push Promises + Bodies, while
+setting Push to 0 will result in the request being answered with this 
+response and the URI will then be closed.
+
+MessageID should be fabricated to track the response.
+
+**OR -> CN**
+
+Header: 5
+
+Data:
+
+    URI (String)
+
+    MessageID (UUID)
+
+    Headers (Hash String/String)
+
+    Body (String)
+
+    Push (Bool)
+
+
+**CN -> OR**
+
+Header: 5
+
+Data:
+
+    MessageID (UUID)
+
+    Response (Integer)
+
+Response values:
+
+    0 - Accepted for delivery
+
+    1 - Invalid URI
 
 
 Service API v1
@@ -245,8 +257,8 @@ Data:
     Maximum Message Batch (Integer)
 
 
-Deliver Message (2)
--------------------
+Deliver Response Message (2)
+----------------------------
 
 The Outbound Router delivers messages to the appropriate CN for the device,
 each message must be acknowledged.
@@ -257,15 +269,50 @@ Header: 2
 
 Data:
 
+    ConnectionNode (UUID)
+
     MessageID (UUID)
 
-    DeviceID (CSUUID)
+    TTL (long long)
 
-    Data (String)
+    Headers (Hash String/String)
 
-**OR -> Service**
+    Body (String)
 
-Header: 2
+
+Deliver URI Message (3)
+-----------------------
+
+Messages may be processed for delivery in parallel, it is up to the OR
+to associate replies with the outbound message that was sent.
+
+This API is for sending messages to an open URI, setting Push to 1 will
+result in the open URI being used to deliver Push Promises + Bodies, while
+setting Push to 0 will result in the request being answered with this 
+response and the URI will then be closed.
+
+MessageID should be fabricated to track the response.
+
+**OR -> CN**
+
+Header: 3
+
+Data:
+
+    URI (String)
+
+    MessageID (UUID)
+
+    Headers (Hash String/String)
+
+    Body (String)
+
+    Push (Bool)
+
+
+**CN -> OR**
+
+Header: 5
 
 Data:
 
@@ -275,59 +322,6 @@ Data:
 
 Response values:
 
-    0 - Delivered to device
+    0 - Accepted for delivery
 
-    1 - Unable to deliver to device (not connected)
-
-    2 - Invalid cluster for this DeviceID
-
-    3 - Inbound Relay is not available
-
-    4 - Error delivering
-
-If the CN is unable to talk to an IR, then the message will be rejected with
-response 3. The Service should retry again later when the IR is connected to
-the CN.
-
-Note that in the event of an *Error delivering*, it is possible that the
-message was actually delivered to the device but verification was not possible
-because of any of several reasons (connection drop to the CN, connection drop
-to the Device from the CN, etc).
-
-
-DeviceID Change (3)
--------------------
-
-When a DeviceID change occurs, the CN will send it to the IR and eventually the
-server should send this message to the OR to be relayed back to the device.
-
-**Service -> OR**
-
-Header: 3
-
-Data:
-
-    MessageID (UUID)
-
-    DeviceID (CSUUID)
-
-    Old DeviceID (CSUUID)
-
-**OR -> Service**
-
-Header: 3
-
-Data:
-
-    MessageID (UUID)
-
-    Response (Integer)
-
-Response values:
-
-    0 - Delivered to the device
-
-    1 - Error delivering to the device
-
-In the event that there was an error, the OR may safely discard the message as
-the client will try again before resuming its message flow for the Service.
+    1 - Invalid URI

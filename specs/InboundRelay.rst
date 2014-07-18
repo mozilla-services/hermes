@@ -33,7 +33,10 @@ the length of characters being sent.
 
 UUID's are encoded as binary data, 16 bytes in length. CSUUID is a
 cluster UUID which should be treated as a cluster identifier (first 2
-bytes, int) followed by the 16 byte UUID.
+bytes, int) followed by the 16 byte UUID. A 'Hash String String' is a
+key/value of string keys to string values, started with a 2-byte int
+indicating how many key/values there are followed by the key/value
+strings.
 
 All commands begin with a header packet containing an unsigned short (2
 bytes) that corresponds to the type of the command being sent/received.
@@ -94,13 +97,17 @@ Header: 2
 
 Data:
 
+    ConnectionNode (UUID)
+
     Message-ID (UUID)
 
-    DeviceID (CSUUID)
+    TTL (long long)
 
     Service Name (String)
 
-    Data (String)
+    Headers (Hash String/String)
+
+    Body (String)
 
 **IR -> CN**
 
@@ -109,48 +116,6 @@ Header: 2
 Data:
 
     Message-ID (UUID)
-
-    Response (Integer)
-
-Response values:
-
-    0 - Delivered to the Service
-
-    1 - Spooled
-
-    2 - Service spool is full/unavailable
-
-If the response is ``2``, then the CN should temporarily stop attempting to
-deliver messages for that service.
-
-
-DeviceID Change (3)
--------------------
-
-When a DeviceID change occurs, the CN will send it to the IR and eventually
-get a confirmation from the Service via the OR.
-
-**CN -> IR**
-
-Header: 3
-
-Data:
-
-    MessageID (UUID)
-
-    DeviceID (CSUUID)
-
-    Old DeviceID (CSUUID)
-
-    Service Name (String)
-
-**IR -> CN**
-
-Header: 3
-
-Data:
-
-    MessageID (UUID)
 
     Response (Integer)
 
@@ -220,11 +185,17 @@ Header: 2
 
 Data:
 
-    MessageID (UUID)
+    ConnectionNode (UUID)
 
-    DeviceID (CSUUID)
+    Message-ID (UUID)
 
-    Data (String)
+    TTL (long long)
+
+    Service Name (String)
+
+    Headers (Hash String/String)
+
+    Body (String)
 
 **Service -> IR**
 
@@ -237,38 +208,5 @@ Data:
     Success (Integer)
 
 Success values:
-
-    0 - Accepted
-
-
-DeviceID Change (3)
--------------------
-
-When a DeviceID change occurs, the client will send a DEVICECHANGE message to
-the CN that the IR will relay to the server.
-
-**IR -> Service**
-
-Header: 3
-
-Data:
-
-    MessageID (UUID)
-
-    DeviceID (CSUUID)
-
-    Old DeviceID (CSUUID)
-
-**Service -> IR**
-
-Header: 3
-
-Data:
-
-    MessageID (UUID)
-
-    Response (Integer)
-
-Response values:
 
     0 - Accepted
