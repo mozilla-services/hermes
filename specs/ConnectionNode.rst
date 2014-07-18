@@ -48,7 +48,7 @@ in the Outbound Router getting notified of.
 
 Example::
 
-.. code-block:: ini
+.. code-block:: txt
 
 	[webpush]
 
