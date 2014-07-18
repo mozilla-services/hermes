@@ -46,9 +46,9 @@ SSL certificate for all domains that it is expected to answer for.
 URL spaces configured with no TTL are considered 'open' URI's that will result
 in the Outbound Router getting notified of.
 
-Example::
+Example:
 
-.. code-block:: txt
+.. code-block:: ini
 
 	[webpush]
 
