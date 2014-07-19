@@ -39,6 +39,9 @@ configured to connect to.
 Configuration
 =============
 
+The DEFAULT block configures the inbound relays and outbound routers the CN
+should attempt to connect to. The remaining blocks setup services.
+
 The domains and URL valid URL spaces for each domain are specified in a INI-
 style configuration format. The ConnectionNode must be supplied with a valid
 SSL certificate for all domains that it is expected to answer for.
@@ -49,9 +52,18 @@ in the Outbound Router getting notified of.
 Example:
 
 .. code-block:: ini
+	
+	[DEFAULT]
+	inbound_relays =
+		53.242.142.122
+		53.242.142.123
+	outbound_routers =
+		53.242.142.122
+		53.242.142.123
+	max_connections = 150000
+	max_streams = 3
 
 	[webpush]
-
 	domain = c92.webpush.svcs.mozilla.org
 	urls =
 		POST /v1/webpush 5
